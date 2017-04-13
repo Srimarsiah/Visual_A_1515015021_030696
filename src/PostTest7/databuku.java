@@ -3,17 +3,19 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package PostTest6; //package yang terdapat di modul 6
-import java.sql.*; ///mengimport databases
+package PostTest7; //package yang terdapat di modul 7
+import java.sql.*; ///mengimport untuk memasukan kedalam databases
 import javax.swing.table.DefaultTableModel; //import table model kedalam databases
-import PostTest6.koneksi; // mengkoneksikan ke dalam database
+import PostTest7.koneksi; // mengkoneksikan ke dalam database
 import javax.swing.JOptionPane; //untuk mengimport joptionpane
+
 
 public class databuku extends javax.swing.JFrame { /// 
 private DefaultTableModel modell; //memberi mendeklarasikan pada model yang digunakan 
 private Connection con = koneksi.getConnection(); //  untuk memperoleh koneksi kedatabases.
 private Statement stt; // untuk memberikan langkah stt atau seperti object pada variabel stt
 private ResultSet rss; //untuk memberikan langkah stt atau seperti object pada variabel rss
+private boolean data=true;
     /**
      * Creates new form databuku
      */
@@ -22,7 +24,7 @@ private ResultSet rss; //untuk memberikan langkah stt atau seperti object pada v
     }
     private void InitTable(){
         modell = new DefaultTableModel(); // untuk menampilkan table
-        modell.addColumn("id_buku"); //memberikan table kolo pada id_buku
+        modell.addColumn("id_buku"); //memberikan table kolom pada id_buku
         modell.addColumn("JUDUL"); // memberikan table k0lom pada judul
         modell.addColumn("PENULIS"); //meberikan table kolom pada penulis
         modell.addColumn("HARGA"); // memberikan table kolom pada harga
@@ -30,12 +32,12 @@ private ResultSet rss; //untuk memberikan langkah stt atau seperti object pada v
         jTable1.setModel(modell);
     }
     private void TampilData(){
-        try {
-            String sql = "SELECT * FROM buku"; //
+        try { //
+            String sql = "SELECT * FROM buku"; //query untuk melihat isi table buku dalam databases dan perintah untuk menampilkan tampilan data seperti id_buku,judul,penulis dan harga.
             stt = con.createStatement();
             rss = stt.executeQuery(sql);
             while(rss.next()){
-                Object[] o = new Object[4];
+                Object[] o = new Object[4]; // dibawah ini ada beberapa object yang harus di deklarasikan seprti id_buku menggunakan getString bgtupun seterusnya.
                 o[0] = rss.getString("id_buku");
                 o[1] = rss.getString("judul");
                 o[2] = rss.getString("penulis");
@@ -49,10 +51,10 @@ private ResultSet rss; //untuk memberikan langkah stt atau seperti object pada v
         private void TambahData(String judul,String penulis,String harga){
             try {
                String sql =
-                       "INSERT INTO buku values (NULL,'"+
+                       "INSERT INTO buku values (NULL,'"+ //untuk memasukkan data kedalam sql.
                        judul+"','"+penulis+"',"+harga+")";
-               stt = con.createStatement();
-               stt.executeUpdate(sql);
+               stt = con.createStatement(); // membuat stament baru
+               stt.executeUpdate(sql); 
                modell.addRow(new Object[]{judul,penulis,harga});
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
@@ -80,7 +82,7 @@ private ResultSet rss; //untuk memberikan langkah stt atau seperti object pada v
                 System.out.println(e.getMessage());
             }
         }
-         private void CariId(){
+                 private void CariId(){
         try{
             String sql = "SELECT*from buku where id_buku='"+tfcari.getText()+"'";
             stt = con.createStatement();
@@ -151,6 +153,51 @@ private ResultSet rss; //untuk memberikan langkah stt atau seperti object pada v
             System.out.println(e.getMessage());
         }
     }
+         private void CariData(String by,String cari){
+        try{
+            String sql = "SELECT*from buku where "+by+"like '%"+cari+"%'";
+            stt = con.createStatement();
+            rss = stt.executeQuery(sql);
+            while(rss.next()){
+              Object[] o = new Object[4];   
+              o[0] = rss.getInt("id_buku");
+              o[1] = rss.getString("judul");
+              o[2] = rss.getString("penulis");
+              o[3] = rss.getString("harga");
+              modell.addRow(o);
+            }
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
+         private void ValidasiData(String judul,String penulis,String harga){ 
+          try {
+            String sql= "select*from buku ";
+            stt = con.createStatement();
+            rss = stt.executeQuery(sql);
+            while(rss.next()){
+              Object[] o = new Object[2];   
+              o[0] = rss.getString("judul").toLowerCase();
+              o[1] = rss.getString("penulis").toLowerCase();
+              
+             if(o[0].equals(judul.toLowerCase()) && o[1].equals(penulis.toLowerCase())){
+                 JOptionPane.showMessageDialog(null,"Data Sudah Ada");
+                 data = false;
+                 break;
+             }
+             }
+            if(data==true){
+                TambahData(judul,penulis,harga);
+            }
+            
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+         }
+         
+    
+  // analisi yang diatas : dideklarasikan dulu diatas beru bisa dipanggil dibawah seperti validasiData, cari data,cari harga dan lain_lain
+         // jika sudah dideklarasi diatas maka akan ditampilkan dibwah dan mereka disebut juga sebagai method yang digunakan untuk di panggil.
 
     
     
@@ -397,13 +444,17 @@ private ResultSet rss; //untuk memberikan langkah stt atau seperti object pada v
     }//GEN-LAST:event_formComponentShown
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-
-        String judul = txtjudul.getText();
-        String penulis = txtpenulis.getSelectedItem().toString();
-        String harga = txtharga.getText();
-        TambahData(judul,penulis,harga);
-        InitTable();
+  if(txtjudul.getText().equals("") || txtharga.getText().equals("")){ // digunakan di tombol simpan jika data terisi maka akan lanjut tetapi jika tidak harus lengkapi dulu data.
+      JOptionPane.showMessageDialog(null, "Data Lengkap");
+      txtjudul.requestFocus();
+  }
+        String judul = txtjudul.getText(); // untuk mendeklarasikan judul menggunakan getText
+        String penulis = txtpenulis.getSelectedItem().toString(); // untuk mendeklarasikan combox agar bisa ditampilkan
+        String harga = txtharga.getText(); //untuk mendeklarasikan text field agar bisa ditampilkan
+        ValidasiData(judul,penulis,harga); //untuk mendeklarasikan text field agar bisa ditampilkan
+        InitTable(); // digunakan untuk menampilkan table yang dibawah jika sudah diinit maka ditampilkan.
         TampilData();
+       
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
@@ -452,19 +503,20 @@ private ResultSet rss; //untuk memberikan langkah stt atau seperti object pada v
         else{
             modell.getDataVector().removeAllElements();
             modell.fireTableDataChanged();
-            if(cbcari.getSelectedItem().equals("id_buku")){
-             CariId();  
-            }
-            else if(cbcari.getSelectedItem().equals("judul")){
-             CariJudul();
-            }
-            else if(cbcari.getSelectedItem().equals("penulis")){
-             CariPenulis();
-            }
-            else if(cbcari.getSelectedItem().equals("harga")){
-             CariHarga();
-             }
-        }
+           CariData(cbcari.getSelectedItem().toString(),tfcari.getText()); 
+           if(cbcari.getSelectedItem().equals("id")){ //kondisi dimana untuk mencari id jika ingin menampilkan id
+               CariId();
+           }
+           else if(cbcari.getSelectedItem().equals("judul")){ //kondisi dimana untuk mencari judul jika ingin menampilkan judul
+               CariJudul();
+           }
+           else if(cbcari.getSelectedItem().equals("penulis")){ //kondisi dimana untuk mencari judul jika ingin menampilkan penulis
+               CariPenulis();
+           }
+           else if(cbcari.getSelectedItem().equals("harga")){ //kondisi dimana untuk mencari judul jika ingin menampilkan harga
+              CariHarga(); 
+           }
+          }
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton5KeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jButton5KeyTyped
